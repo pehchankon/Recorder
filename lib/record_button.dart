@@ -32,6 +32,23 @@ class _RecordButtonState extends State<RecordButton> {
     _isRecorderInitialized = false;
   }
 
+  void record() async {
+    if (!_isRecorderInitialized) if (_audioRecorder!.isRecording) {
+      await _audioRecorder!.stopRecorder();
+    } else {
+      DateTime now = new DateTime.now();
+      String path = now.hour.toString() +
+          '-' +
+          now.minute.toString() +
+          '-' +
+          now.second.toString() +
+          '.aac';
+      await _audioRecorder!
+          .startRecorder(toFile: '/storage/emulated/0/Download/' + path);
+    }
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
@@ -48,22 +65,7 @@ class _RecordButtonState extends State<RecordButton> {
   Widget build(BuildContext context) {
     icon = _audioRecorder!.isRecording ? Icons.stop : Icons.mic;
     return ElevatedButton(
-      onPressed: () async {
-        if (_audioRecorder!.isRecording) {
-          await _audioRecorder!.stopRecorder();
-        } else {
-          DateTime now = new DateTime.now();
-          String path = now.hour.toString() +
-              '-' +
-              now.minute.toString() +
-              '-' +
-              now.second.toString() +
-              '.aac';
-          await _audioRecorder!
-              .startRecorder(toFile: '/storage/emulated/0/Download/' + path);
-        }
-        setState(() {});
-      },
+      onPressed: record,
       child: Padding(
         padding: const EdgeInsets.all(40),
         child: Icon(
