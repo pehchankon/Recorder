@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_sound_lite/flutter_sound.dart';
 import 'package:flutter_sound_lite/public/flutter_sound_recorder.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class RecordButton extends StatefulWidget {
   const RecordButton({Key? key}) : super(key: key);
@@ -19,7 +18,11 @@ class _RecordButtonState extends State<RecordButton> {
 
   Future init() async {
     if (await Permission.microphone.request().isDenied) {
-      throw RecordingPermissionException('Mic permission not granted');
+      Fluttertoast.showToast(
+        msg: "Mic permission not granted",
+        toastLength: Toast.LENGTH_SHORT,
+      );
+      return;
     }
 
     await _audioRecorder!.openAudioSession();
@@ -33,20 +36,28 @@ class _RecordButtonState extends State<RecordButton> {
   }
 
   void record() async {
-    if (!_isRecorderInitialized) if (_audioRecorder!.isRecording) {
-      await _audioRecorder!.stopRecorder();
+    !_isRecorderInitialized ? init() : null;
+    if (await Permission.microphone.request().isGranted) {
+      if (_audioRecorder!.isRecording) {
+        await _audioRecorder!.stopRecorder();
+      } else {
+        DateTime now = new DateTime.now();
+        String path = now.hour.toString() +
+            '-' +
+            now.minute.toString() +
+            '-' +
+            now.second.toString() +
+            '.aac';
+        await _audioRecorder!
+            .startRecorder(toFile: '/storage/emulated/0/Download/' + path);
+      }
+      setState(() {});
     } else {
-      DateTime now = new DateTime.now();
-      String path = now.hour.toString() +
-          '-' +
-          now.minute.toString() +
-          '-' +
-          now.second.toString() +
-          '.aac';
-      await _audioRecorder!
-          .startRecorder(toFile: '/storage/emulated/0/Download/' + path);
+      Fluttertoast.showToast(
+        msg: "Mic permission not granted",
+        toastLength: Toast.LENGTH_SHORT,
+      );
     }
-    setState(() {});
   }
 
   @override
